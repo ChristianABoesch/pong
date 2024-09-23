@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game</title>
+    <style>
+        canvas {
+            background: black;
+            display: block;
+            margin: auto;
+        }
+        #scoreboard {
+            color: black;
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        #gameOver {
+            color: black;
+            font-size: 36px;
+            text-align: center;
+            display: none; /* Hidden by default */
+        }
+        #pauseMessage {
+            color: grey;
+            font-size: 36px;
+            text-align: center;
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body>
+    <div id="scoreboard">Player: 0 | Computer: 0</div>
+    <canvas id="pong" width="800" height="400"></canvas>
+    <div id="pauseMessage">Game Paused</div>
+    <div id="gameOver">Game Over! Player Wins!</div>
+    <script>
+        const canvas = document.getElementById('pong');
+        const context = canvas.getContext('2d');
+        const scoreboard = document.getElementById('scoreboard');
+        const gameOverText = document.getElementById('gameOver');
+        const pauseMessage = document.getElementById('pauseMessage');
+
+        // Create the pong paddle
+        const paddleWidth = 10, paddleHeight = 100;
+        const player = { x: 0, y: canvas.height / 2 - paddleHeight / 2, width: paddleWidth, height: paddleHeight, color: 'white', dy: 0 };
+        const computer = { x: canvas.width - paddleWidth, y: canvas.height / 2 - paddleHeight / 2, width: paddleWidth, height: paddleHeight, color: 'white', dy: 0 };
+
+        // Create the pong ball
+        const ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 10, speed: 5, dx: 5, dy: 5, color: 'white' };
+
+        // Initialize scores
+        let playerScore = 0;
+        let computerScore = 0;
+        let paused = false; // Pause state
+        let gameEnded = false; // Game end state
+
+        // Draw function
+        function draw() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.fillStyle = player.color;
+            context.fillRect(player.x, player.y, player.width, player.height);
+            context.fillStyle = computer.color;
+            context.fillRect(computer.x, computer.y, computer.width, computer.height);
+            context.fillStyle = ball.color;
+            context.beginPath();
+            context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            context.fill();
+
+            // Update scoreboard
+            scoreboard.innerText = `Player: ${playerScore} | Computer: ${computerScore}`;
+
+            // Show pause message if paused
+            if (paused) {
+                pauseMessage.style.display = 'block';
+            } else {
+                pauseMessage.style.display = 'none';
+            }
+        }
+
+        // Update function
+        function update() {
+            if (paused || gameEnded) return; // Skip updates if paused or game ended
+
+            player.y += player.dy;
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            // Ball collision with top and bottom
+            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
+                ball.dy *= -1;
+            }
+
+            // Ball collision with paddles
+            if (ball.x - ball.radius < player.x + player.width && ball.y > player.y && ball.y < player.y + player.height) {
+                ball.dx *= -1;
+            }
+            if (ball.x + ball.radius > computer.x && ball.y > computer.y && ball.y < computer.y + computer.height) {
+                ball.dx *= -1;
+            }
+
+            // Reset ball if it goes out of bounds
+            if (ball.x + ball.radius < 0) {
+                computerScore++;
+                resetBall();
+            }
+            if (ball.x - ball.radius > canvas.width) {
+                playerScore++;
+                resetBall();
+            }
+
+            // End game if player scores
+            if (playerScore >= 1) {
+                gameEnded = true;
+                gameOverText.style.display = 'block'; // Show game over message
+            }
+
+            // Simple AI for computer paddle
+            if (ball.y > computer.y + computer.height / 2) {
+                computer.y += 4;
+            } else {
+                computer.y -= 4;
+            }
+
+            // Prevent paddles from going out of bounds
+            player.y = Math.max(Math.min(player.y, canvas.height - player.height), 0);
+            computer.y = Math.max(Math.min(computer.y, canvas.height - computer.height), 0);
+        }
+
+        // Reset ball function
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.dx = 5 * (Math.random() > 0.5 ? 1 : -1);
+            ball.dy = 5 * (Math.random() > 0.5 ? 1 : -1);
+        }
+
+        // Game loop
+        function gameLoop() {
+            draw();
+            update();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Control player paddle
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowUp') player.dy = -6;
+            if (event.key === 'ArrowDown') player.dy = 6;
+            if (event.key === ' ') paused = !paused; // Toggle pause on spacebar
+        });
+
+        document.addEventListener('keyup', (event) => {
+            if (event.key === 'ArrowUp' || event.key === 'ArrowDown') player.dy = 0;
+        });
+
+        // Start the game
+        gameLoop();
+    </script>
+</body>
+</html>
