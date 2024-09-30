@@ -35,6 +35,9 @@
     <canvas id="pong" width="800" height="400"></canvas>
     <div id="pauseMessage">Game Paused</div>
     <div id="gameOver">Game Over! Player Wins!</div>
+    <div id="controlsMessage" style="display: none;">Use arrow keys to move, press the space bar to pause</div>
+    <audio id="playerPaddleHit" src="audio/paddle1.wav"></audio>
+    <audio id="computerPaddleHit" src="audio/paddle2.wav"></audio>
     <script>
         const canvas = document.getElementById('pong');
         const context = canvas.getContext('2d');
@@ -53,7 +56,7 @@
         // Initialize scores
         let playerScore = 0;
         let computerScore = 0;
-        let paused = false; // Pause state
+        let paused = true; // Set paused to true by default
         let gameEnded = false; // Game end state
 
         // Draw function
@@ -95,9 +98,11 @@
             // Ball collision with paddles
             if (ball.x - ball.radius < player.x + player.width && ball.y > player.y && ball.y < player.y + player.height) {
                 ball.dx *= -1;
+                document.getElementById('playerPaddleHit').play(); // Play sound for player paddle hit
             }
             if (ball.x + ball.radius > computer.x && ball.y > computer.y && ball.y < computer.y + computer.height) {
                 ball.dx *= -1;
+                document.getElementById('computerPaddleHit').play(); // Play sound for computer paddle hit
             }
 
             // Reset ball if it goes out of bounds
@@ -147,12 +152,36 @@
         document.addEventListener('keydown', (event) => {
             if (event.key === 'ArrowUp') player.dy = -6;
             if (event.key === 'ArrowDown') player.dy = 6;
-            if (event.key === ' ') paused = !paused; // Toggle pause on spacebar
+            if (event.key === ' ') {
+                paused = !paused; // Toggle pause
+                localStorage.setItem('gamePaused', paused); // Save paused state
+                document.getElementById('pauseMessage').style.display = paused ? 'block' : 'none';
+                if (!paused) {
+                    document.getElementById('controlsMessage').style.display = 'none'; // Hide controls message when game resumes
+                }
+            }
         });
 
         document.addEventListener('keyup', (event) => {
             if (event.key === 'ArrowUp' || event.key === 'ArrowDown') player.dy = 0;
         });
+
+        // Check if the game was paused before refresh
+        window.onload = function() {
+            if (localStorage.getItem('gamePaused') === 'true') {
+                paused = true;
+                document.getElementById('pauseMessage').style.display = 'block';
+            }
+            document.getElementById('controlsMessage').style.display = 'block'; // Show controls message on refresh
+        };
+
+        // Hide intro and show scoreboard when the game starts
+        function startGame() {
+            document.getElementById('intro').style.display = 'none';
+            document.getElementById('scoreboard').style.display = 'block';
+            document.getElementById('controlsMessage').style.display = 'none'; // Hide controls message
+            gameLoop();
+        }
 
         // Start the game
         gameLoop();
