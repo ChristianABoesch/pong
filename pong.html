@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pong Game</title>
     <style>
+        body {
+            background: linear-gradient(to bottom right, #87CEEB, #FFB6C1); /* Gradient from light sky blue to light pink */
+            margin: 0; /* Remove default margin */
+            flex-direction: column; /* Stack elements vertically */
+            justify-content: center; /* Center vertically */
+            align-items: center; /* Center horizontally */
+            height: 100vh; /* Full viewport height */
+            text-align: center; /* Center text */
+        }
         canvas {
             background: black;
             display: block;
@@ -33,9 +42,10 @@
 <body>
     <div id="scoreboard">Player: 0 | Computer: 0</div>
     <canvas id="pong" width="800" height="400"></canvas>
-    <div id="pauseMessage">Game Paused</div>
+    <div id="pauseMessage" style="display: none;">Welcome to Pong</div>
     <div id="gameOver">Game Over! Player Wins!</div>
     <div id="controlsMessage" style="display: none;">Use arrow keys to move, press the space bar to pause</div>
+    <div id="startMessage" style="display: none;">Press the space bar to begin game</div>
     <audio id="playerPaddleHit" src="audio/paddle1.wav"></audio>
     <audio id="computerPaddleHit" src="audio/paddle2.wav"></audio>
     <script>
@@ -155,7 +165,9 @@
             if (event.key === ' ') {
                 paused = !paused; // Toggle pause
                 localStorage.setItem('gamePaused', paused); // Save paused state
-                document.getElementById('pauseMessage').style.display = paused ? 'block' : 'none';
+                document.getElementById('pauseMessage').innerText = paused ? "Game Paused" : "Welcome to Pong"; // Update message
+                document.getElementById('pauseMessage').style.display = paused ? 'block' : 'none'; // Show/hide pause message
+                document.getElementById('startMessage').style.display = paused ? 'none' : 'none'; // Hide start message when game starts
                 if (!paused) {
                     document.getElementById('controlsMessage').style.display = 'none'; // Hide controls message when game resumes
                 }
@@ -168,11 +180,11 @@
 
         // Check if the game was paused before refresh
         window.onload = function() {
-            if (localStorage.getItem('gamePaused') === 'true') {
-                paused = true;
-                document.getElementById('pauseMessage').style.display = 'block';
-            }
-            document.getElementById('controlsMessage').style.display = 'block'; // Show controls message on refresh
+            paused = true; // Ensure the game is paused
+            document.getElementById('pauseMessage').innerText = "Welcome to Pong"; // Set initial message
+            document.getElementById('pauseMessage').style.display = 'block'; // Show welcome message
+            document.getElementById('controlsMessage').style.display = 'block'; // Show controls message
+            document.getElementById('startMessage').style.display = 'block'; // Show start message
         };
 
         // Hide intro and show scoreboard when the game starts
